@@ -1,12 +1,14 @@
 use std::fs::read_to_string;
 
 mod day_01;
+mod day_02;
 
 pub fn run(day: u32) {
     println!("Running AdventOfCode Day {:02}...", day);
     let input = read_input(day);
     match day {
         1 => day_01::run(&input),
+        2 => day_02::run(&input),
         _ => eprintln!("Unsupported day {}", day),
     }
 }
