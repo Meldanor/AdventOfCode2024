@@ -4,7 +4,7 @@ This holds the solutions for Advent of Code 2024 in Rust by me (Kilian Gärtner)
 
 ## Run
 
-    TODO
+    cargo run -- <DAY>
 
 ## LICENSE
 
