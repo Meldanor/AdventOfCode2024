@@ -3,6 +3,7 @@ use std::fs::read_to_string;
 mod day_01;
 mod day_02;
 mod day_03;
+mod day_04;
 
 pub fn run(day: u32) {
     println!("Running AdventOfCode Day {:02}...", day);
@@ -11,6 +12,7 @@ pub fn run(day: u32) {
         1 => day_01::run(&input),
         2 => day_02::run(&input),
         3 => day_03::run(&input),
+        4 => day_04::run(&input),
         _ => eprintln!("Unsupported day {}", day),
     }
 }
