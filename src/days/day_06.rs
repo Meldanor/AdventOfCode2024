@@ -1,5 +1,39 @@
+#[derive(PartialEq, Eq, Clone, Debug)]
+struct Point2D {
+    x: isize,
+    y: isize,
+}
+
+const ZERO: Point2D = Point2D { x: 0, y: 0 };
+const UP: Point2D = Point2D { x: 0, y: -1 };
+const RIGHT: Point2D = Point2D { x: 1, y: 0 };
+const DOWN: Point2D = Point2D { x: 0, y: 1 };
+const LEFT: Point2D = Point2D { x: -1, y: 0 };
+
+impl Point2D {
+    pub fn add(&self, b: &Point2D) -> Point2D {
+        Point2D {
+            x: self.x + b.x,
+            y: self.y + b.y,
+        }
+    }
+
+    pub fn rotate_clockwise(&self) -> Point2D {
+        if self.eq(&UP) {
+            RIGHT
+        } else if self.eq(&RIGHT) {
+            DOWN
+        } else if self.eq(&DOWN) {
+            LEFT
+        } else if self.eq(&LEFT) {
+            UP
+        } else {
+            panic!("unknown rotation vector")
+        }
+    }
+}
+
 struct MapPosition {
-    position: (isize, isize),
     is_obstacle: bool,
     visitations: usize,
 }
@@ -12,7 +46,8 @@ impl MapPosition {
 
 pub fn run(input: &Vec<String>) {
     let (player_position, map) = parse_input(input);
-    let unique_visitations = run_part_one(player_position, (0, -1), map);
+    println!("{:?}", player_position);
+    let unique_visitations = run_part_one(player_position, UP, map);
     println!(
         "(Part 1) The player visited {:?} unique places",
         unique_visitations
@@ -20,34 +55,30 @@ pub fn run(input: &Vec<String>) {
 }
 
 fn run_part_one(
-    player_position: (isize, isize),
-    direction_vec: (isize, isize),
+    player_position: Point2D,
+    direction: Point2D,
     mut map: Vec<Vec<MapPosition>>,
 ) -> usize {
     let mut player_position = player_position.clone();
-    map[player_position.1 as usize][player_position.0 as usize].visit();
-    let mut direction_vec = direction_vec.clone();
+    let mut direction = direction.clone();
+    map[player_position.y as usize][player_position.x as usize].visit();
     let height = map.len() as isize;
     let width = map[0].len() as isize;
     loop {
-        let next_pos = (
-            player_position.0 + direction_vec.0,
-            player_position.1 + direction_vec.1,
-        );
-        if next_pos.0 < 0 || next_pos.1 < 0 || next_pos.0 >= width || next_pos.1 >= height {
+        let next_position = player_position.add(&direction);
+
+        if next_position.x < 0
+            || next_position.y < 0
+            || next_position.x >= width
+            || next_position.y >= height
+        {
             break;
         }
-        if map[next_pos.1 as usize][next_pos.0 as usize].is_obstacle {
-            direction_vec = match direction_vec {
-                (0, 1) => (-1, 0),
-                (0, -1) => (1, 0),
-                (1, 0) => (0, 1),
-                (-1, 0) => (0, -1),
-                _ => panic!("Unknown direction vector {:?}", direction_vec),
-            }
+        if map[next_position.y as usize][next_position.x as usize].is_obstacle {
+            direction = direction.rotate_clockwise();
         } else {
-            map[next_pos.1 as usize][next_pos.0 as usize].visit();
-            player_position = next_pos;
+            map[next_position.y as usize][next_position.x as usize].visit();
+            player_position = next_position;
         }
     }
     return count_unique_visitations(map);
@@ -68,9 +99,9 @@ fn count_unique_visitations(map: Vec<Vec<MapPosition>>) -> usize {
 }
 
 // Player position AND the map
-fn parse_input(input: &Vec<String>) -> ((isize, isize), Vec<Vec<MapPosition>>) {
+fn parse_input(input: &Vec<String>) -> (Point2D, Vec<Vec<MapPosition>>) {
     let mut result: Vec<Vec<MapPosition>> = Vec::new();
-    let mut player_position: (isize, isize) = (0, 0);
+    let mut player_position: Point2D = ZERO;
     let mut y: isize = 0;
     for line in input {
         let mut x: isize = 0;
@@ -78,7 +109,7 @@ fn parse_input(input: &Vec<String>) -> ((isize, isize), Vec<Vec<MapPosition>>) {
         for char in line.chars() {
             let is_obstacle = match char {
                 '^' => {
-                    player_position = (x.try_into().unwrap(), y.try_into().unwrap());
+                    player_position = Point2D { x, y };
                     false
                 }
                 '.' => false,
@@ -86,7 +117,6 @@ fn parse_input(input: &Vec<String>) -> ((isize, isize), Vec<Vec<MapPosition>>) {
                 _ => panic!("Unknown char in input {}", char),
             };
             positions.push(MapPosition {
-                position: (x, y),
                 is_obstacle,
                 visitations: 0,
             });
