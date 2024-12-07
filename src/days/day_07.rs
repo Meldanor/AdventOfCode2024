@@ -41,7 +41,7 @@ pub fn run(input: &Vec<String>) {
 }
 
 fn concat_numbers(a: u128, b: u128) -> u128 {
-    let magnitude = (b as f64).log10().ceil() as u32;
+    let magnitude = (b as f64).log10() as u32 + 1;
     let left_shift: u128 = 10_u128.pow(magnitude);
     return a.checked_mul(left_shift).unwrap().checked_add(b).unwrap();
 }
