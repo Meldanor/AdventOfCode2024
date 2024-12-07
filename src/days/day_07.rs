@@ -3,15 +3,15 @@ use std::ops::{Add, Mul};
 use itertools::{repeat_n, Itertools};
 
 struct Calibration {
-    result: usize,
-    inputs: Vec<usize>,
+    result: u128,
+    inputs: Vec<u128>,
 }
 
-type Operation = fn(usize, usize) -> usize;
+type Operation = fn(u128, u128) -> u128;
 
 impl Calibration {
-    fn calculate(&self, operators: Vec<Operation>) -> usize {
-        let mut result: usize = self.inputs[0];
+    fn calculate(&self, operators: Vec<&Operation>) -> u128 {
+        let mut result: u128 = self.inputs[0];
         for i in 1..self.inputs.len() {
             result = operators[i - 1](result, self.inputs[i]);
         }
@@ -21,16 +21,37 @@ impl Calibration {
 
 pub fn run(input: &Vec<String>) {
     let calibrations = parse_input(input);
-    let sum_test_results = sum_valid_calibrations(&calibrations);
+
+    // Part 1
+    let simple_operators = vec![u128::add, u128::mul];
+    let sum_test_results = sum_valid_calibrations(&calibrations, &simple_operators);
     println!(
-        "(Part 1) The sum of valid test results is {}",
+        "(Part 1) The sum of valid test results with + and * is {}",
+        sum_test_results
+    );
+
+    let complex_operators = vec![u128::add, u128::mul, concat_numbers];
+
+    // Part 2
+    let sum_test_results = sum_valid_calibrations(&calibrations, &complex_operators);
+    println!(
+        "(Part 2) The sum of valid test results with + and * and || is {}",
         sum_test_results
     );
 }
 
-fn sum_valid_calibrations(calibrations: &Vec<Calibration>) -> usize {
-    let mut sum: usize = 0;
-    let possible_operators: [Operation; 2] = [usize::add, usize::mul];
+fn concat_numbers(a: u128, b: u128) -> u128 {
+    let magnitude = (b as f64).log10().ceil() as u32;
+    let left_shift: u128 = 10_u128.pow(magnitude);
+    return a.checked_mul(left_shift).unwrap().checked_add(b).unwrap();
+}
+
+fn sum_valid_calibrations(
+    calibrations: &Vec<Calibration>,
+    possible_operators: &Vec<Operation>,
+) -> u128 {
+    let mut sum: u128 = 0;
+
     for calibration in calibrations {
         'inner: for operators in
             repeat_n(possible_operators, calibration.inputs.len() - 1).multi_cartesian_product()
@@ -49,8 +70,8 @@ fn parse_input(input: &Vec<String>) -> Vec<Calibration> {
 
     for line in input {
         let (left, right) = line.split_once(":").unwrap();
-        let result: usize = left.parse().unwrap();
-        let mut inputs: Vec<usize> = Vec::new();
+        let result: u128 = left.parse().unwrap();
+        let mut inputs: Vec<u128> = Vec::new();
         for number in right.split_whitespace() {
             inputs.push(number.parse().unwrap());
         }
