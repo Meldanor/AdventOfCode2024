@@ -1,6 +1,8 @@
 use std::{env, process::exit};
 
 mod days;
+mod map_2d;
+mod point_2d;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
